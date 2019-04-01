@@ -142,7 +142,6 @@ void Chip8::emulateCPUCycles() {
 	opcodes = memory[pc] << 8 | memory[pc + 1];
 	string convertedAddress = convertHex(opcodes);
 	//Check opcode
-	
 	switch (opcodes & 0xF000)
 	{
 		case (0x0000):
@@ -387,7 +386,17 @@ void Chip8::emulateCPUCycles() {
 			printHex("This opcode is not implemented yet: ", opcodes);
 			break;
 	}
-	//Decode opcode
+	
+	if(sound_timer > 0){
+		if(sount_timer == 1){
+			//BEEP A SOUND
+		}
+		soundTimer--;
+	}
+	
+	if(delay_timer > 0){
+		delay_timer--;
+	}
 }
 
 void Chip8::loadGame(const char * pathGame)
