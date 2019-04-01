@@ -436,7 +436,7 @@ string Chip8::convertHex(int valueToConvert) {
 }
 
 void Chip8::clearScreen() {
-	for (int i = 0; i < sizeof(memory); i++) {
-		memory[i] = 0;
+	for (int i = 0; i < sizeof(gfx); i++) {
+		gfx[i] = 0;
 	}
 }
