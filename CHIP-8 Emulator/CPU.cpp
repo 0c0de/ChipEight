@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <iterator>
+#include <cstdlib>
 //#include "GPU.h"
 using namespace std;
 
@@ -80,7 +80,7 @@ public:
 
 private:
 
-	void printHex(string displayMessage, int val);
+	void printHex(const char* displayMessage, int val);
 
 	string convertHex(int valueToConvert);
 
@@ -140,7 +140,6 @@ void Chip8::emulateCPUCycles() {
 	//This piece of code will try to simulate a cicle of the CPU
 	//Fetch the opcode
 	opcodes = memory[pc] << 8 | memory[pc + 1];
-	string convertedAddress = convertHex(opcodes);
 	//Check opcode
 	switch (opcodes & 0xF000)
 	{
@@ -148,12 +147,15 @@ void Chip8::emulateCPUCycles() {
 			switch (opcodes & 0x000F) {
 				case (0x0):
 					clearScreen();
+					printHex("Opcode implemented: ", opcodes);
 					break;
 				case (0xE):
-					sp--;
 					pc = stack[sp];
+					sp--;
+					printHex("Opcode implemented: ", opcodes);
 					break;
 				default:
+					printHex("Opcode not implemented: ", opcodes);
 					break;
 			}
 
@@ -175,6 +177,8 @@ void Chip8::emulateCPUCycles() {
 			//Condition == pseudo is if(Vx == NN)
 			//format 0x3XNN
 			if (V[(opcodes & 0x0f00) >> 8] == (opcodes & 0x00ff)) {
+				pc += 4;
+			}else {
 				pc += 2;
 			}
 			printHex("Opcode implemented: ", opcodes);
@@ -183,6 +187,8 @@ void Chip8::emulateCPUCycles() {
 			//Condition != pseudo is if(Vx != NN)
 			//format 0x4XNN
 			if (V[(opcodes & 0x0f00) >> 8] != (opcodes & 0x00ff)) {
+				pc += 4;
+			}else {
 				pc += 2;
 			}
 			printHex("Opcode implemented: ", opcodes);
@@ -191,6 +197,9 @@ void Chip8::emulateCPUCycles() {
 			//Condition != pseudo is if(Vx != Vy)
 			//format 0x5XY0
 			if (V[(opcodes & 0x0f00) >> 8] != V[(opcodes & 0x00f0) >> 4]) {
+				pc += 4;
+			}
+			else {
 				pc += 2;
 			}
 			printHex("Opcode implemented: ", opcodes);
@@ -292,7 +301,7 @@ void Chip8::emulateCPUCycles() {
 					printHex("Opcode implemented: ", opcodes);
 					break;
 				default:
-					cout << "OPCODE not found or not implemented" << endl;
+					printHex("Opcode not implemented: ", opcodes);
 					break;
 			}
 			break;
@@ -341,10 +350,10 @@ void Chip8::emulateCPUCycles() {
 
 					for (int x = 0; x < width; x++) {
 						if ((pixel & (0x80 >> x)) != 0) {
-							if (gfx[(vx + x + ((vy + y) * 64))] == 1) {
+							if (gfx[(vx + x) + ((vy + y) * 64)] == 1) {
 								V[0xf] = 1;
 							}
-							gfx[(vx + x + ((vy + y) * 64))] ^= 1;
+							gfx[(vx + x) + ((vy + y) * 64)] ^= 1;
 						}
 					}
 				}
@@ -359,28 +368,111 @@ void Chip8::emulateCPUCycles() {
 					//Handles if the key stored in VX is pressed by using a condition, if(key() == Vx){}
 					//Format 0xEX9E
 					if (V[(opcodes & 0x0f00) >> 8] == 0) {
-						pc += 2;
+						pc += 4;
 					}
 					else {
-						pc += 4;
+						pc += 2;
 					}
 					break;
 				case 0x00A1:
 					//Handles if the key stored in VX is NOT pressed by using a condition, if(key() != Vx){}
 					//Format 0xEXA1
 					if (V[(opcodes & 0x0f00) >> 8] != 0) {
-						pc += 2;
+						pc += 4;
 					}
 					else {
-						pc += 4;
+						pc += 2;
 					}
 					break;
 			}
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0xF000):
+			switch (opcodes & 0x00ff) {
+				//Sets VX to delay_timer
+				//Format 0xFX07
+				case 0x0007:
+					V[(opcodes & 0x0f00) >> 8] = delay_timer;
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Sets VX to key pressed, have to wait until
+				//A key is pressed
+				//Format 0xFX0A
+				case 0x000A:
+					{
+						bool isKeyPressed = false;
 
-			printHex("This opcode is not implemented yet: ", opcodes);
+						for (int j = 0; j < 16; j++) {
+							if (keys[j] != 0) {
+								V[(opcodes & 0x0f00) >> 8] = j;
+								isKeyPressed = true;
+							}
+						}
+						if (!isKeyPressed) {
+							return;
+						}
+						pc += 2;
+						printHex("Opcode implemented: ", opcodes);
+					}
+					break;
+				//Sets delay_timer to VX
+				//Format 0xFX15
+				case 0x0015:
+					delay_timer = V[(opcodes & 0x0f00) >> 8];
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Sets sound_timer to VX
+				//Format 0xFX18
+				case 0x0018:
+					sound_timer = V[(opcodes & 0x0f00) >> 8];
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Adds VX to I
+				//Format 0xFX1E
+				case 0x001E:
+					if (I + V[(opcodes & 0x0f00) >> 8] > 0xFF) {
+						V[0xF] = 1; //Overflow
+					}else{
+						V[0xF] = 0; //Non-Overflow
+					}
+					I += V[(opcodes & 0x0f00) >> 8];
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Sets I to the location of the sprite in VX
+				//This is stored in hex from 0x0 to 0xF 
+				//Represented by a 4x5 font
+				//Format 0xFX29
+				case 0x0029:
+					I = V[(opcodes & 0x0f00) >> 8] * 0x5;
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Sets delay_timer to VX
+				//Format 0xfX33
+				case 0x0033:
+					memory[I] = V[(opcodes & 0x0f00) >> 8] % 1000 / 100;
+					memory[I + 1] = V[(opcodes & 0x0f00) >> 8] % 100 / 10;
+					memory[I + 2] = V[(opcodes & 0x0f00) >> 8] % 10;
+					pc += 2;
+					printHex("Opcode implemented: ", opcodes);
+					break;
+				//Sets delay_timer to VX
+				//Format 0xfX07
+				case 0x0055:
+
+					printHex("This opcode is not implemented yet: ", opcodes);
+					break;
+				//Sets delay_timer to VX
+				//Format 0xfX07
+				case 0x0065:
+
+					printHex("This opcode is not implemented yet: ", opcodes);
+					break;
+			}
 			break;
 		default:
 			printHex("This opcode is not implemented yet: ", opcodes);
@@ -388,10 +480,10 @@ void Chip8::emulateCPUCycles() {
 	}
 	
 	if(sound_timer > 0){
-		if(sount_timer == 1){
+		if(sound_timer == 1){
 			//BEEP A SOUND
 		}
-		soundTimer--;
+		sound_timer--;
 	}
 	
 	if(delay_timer > 0){
@@ -433,8 +525,8 @@ void Chip8::loadGame(const char * pathGame)
 	cout << "Game dumped correctly" << endl;
 }
 
-void Chip8::printHex(string displayMessage, int val) {
-	cout << displayMessage.c_str() << hex << val << endl;
+void Chip8::printHex(const char* displayMessage, int val) {
+	cout << displayMessage << hex << val << endl;
 }
 
 string Chip8::convertHex(int valueToConvert) {

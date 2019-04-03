@@ -1,2 +1,10 @@
-﻿  main.cpp
-c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\main.cpp(2): fatal error C1083: No se puede abrir el archivo incluir: 'SDL.h': No such file or directory
+﻿main.obj : error LNK2019: símbolo externo SDL_GetError sin resolver al que se hace referencia en la función "void __cdecl RunMainApp(void)" (?RunMainApp@@YAXXZ)
+main.obj : error LNK2019: símbolo externo SDL_RWFromFile sin resolver al que se hace referencia en la función "struct SDL_Surface * __cdecl loadImage(char const *)" (?loadImage@@YAPEAUSDL_Surface@@PEBD@Z)
+main.obj : error LNK2019: símbolo externo SDL_LoadBMP_RW sin resolver al que se hace referencia en la función "struct SDL_Surface * __cdecl loadImage(char const *)" (?loadImage@@YAPEAUSDL_Surface@@PEBD@Z)
+main.obj : error LNK2019: símbolo externo SDL_CreateWindow sin resolver al que se hace referencia en la función "void __cdecl RunMainApp(void)" (?RunMainApp@@YAXXZ)
+main.obj : error LNK2019: símbolo externo SDL_PollEvent sin resolver al que se hace referencia en la función "void __cdecl RunMainApp(void)" (?RunMainApp@@YAXXZ)
+main.obj : error LNK2019: símbolo externo SDL_Init sin resolver al que se hace referencia en la función SDL_main
+MSVCRTD.lib(exe_main.obj) : error LNK2019: símbolo externo main sin resolver al que se hace referencia en la función "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ)
+C:\SDL2-2.0.9\lib\x86\SDL2.lib : warning LNK4272: el tipo de máquina de biblioteca 'x86' está en conflicto con el tipo de máquina de destino 'x64'
+C:\SDL2-2.0.9\lib\x86\SDL2main.lib : warning LNK4272: el tipo de máquina de biblioteca 'x86' está en conflicto con el tipo de máquina de destino 'x64'
+C:\Users\josel\Documents\ChipEight\x64\Debug\CHIP-8 Emulator.exe : fatal error LNK1120: 7 externos sin resolver

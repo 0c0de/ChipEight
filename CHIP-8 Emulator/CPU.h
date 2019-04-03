@@ -25,6 +25,8 @@ public:
 	//Handles the opcodes of the cpu, which are two bytes long so we use "unsigned short"
 	unsigned short opcodes;
 
+	bool canDraw = false;
+
 	//Emulates the memory size of CHIP-8 which is 4K, so 4096 bytes
 	unsigned char memory[4096];
 
