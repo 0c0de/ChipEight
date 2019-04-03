@@ -150,8 +150,8 @@ void Chip8::emulateCPUCycles() {
 					clearScreen();
 					break;
 				case (0xE):
-					sp--;
 					pc = stack[sp];
+					sp--;
 					break;
 				default:
 					break;
@@ -166,8 +166,8 @@ void Chip8::emulateCPUCycles() {
 		case(0x2000):
 			//Calls a subroutine at NNN
 			//Format is 0x2NNN
-			stack[sp] = pc;
 			sp++;
+			stack[sp] = pc;
 			pc = opcodes & 0x0fff;
 			printHex("Opcode implemented: ", opcodes);
 			break;
@@ -176,6 +176,8 @@ void Chip8::emulateCPUCycles() {
 			//format 0x3XNN
 			if (V[(opcodes & 0x0f00) >> 8] == (opcodes & 0x00ff)) {
 				pc += 2;
+			}else{
+				pc += 4;
 			}
 			printHex("Opcode implemented: ", opcodes);
 			break;
@@ -184,28 +186,32 @@ void Chip8::emulateCPUCycles() {
 			//format 0x4XNN
 			if (V[(opcodes & 0x0f00) >> 8] != (opcodes & 0x00ff)) {
 				pc += 2;
+			}else{
+				pc += 2;
 			}
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0x5000):
-			//Condition != pseudo is if(Vx != Vy)
+			//Condition != pseudo is if(Vx = Vy)
 			//format 0x5XY0
-			if (V[(opcodes & 0x0f00) >> 8] != V[(opcodes & 0x00f0) >> 4]) {
+			if (V[(opcodes & 0x0f00) >> 8] == V[(opcodes & 0x00f0) >> 4]) {
 				pc += 2;
+			}else{
+				pc += 4;
 			}
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0x6000):
 			//Sets Vx to NN
 			//Format 0x6XNN
-			V[(opcodes & 0x0f00) >> 8] = opcodes & 0x00ff;
+			V[(opcodes & 0x0f00) >> 8] = (opcodes & 0x00ff);
 			printHex("Opcode implemented: ", opcodes);
 			pc += 2;
 			break;
 		case(0x7000):
 			//Add NN to Vx, we don't take care of CF
 			//Format 0x7XNN
-			V[(opcodes & 0x0f00) >> 8] = opcodes & 0x00ff;
+			V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00 >> 8)] + (opcodes & 0x00ff);
 			printHex("Opcode implemented: ", opcodes);
 			pc += 2;
 			break;
@@ -213,81 +219,91 @@ void Chip8::emulateCPUCycles() {
 			//Add NN to Vx, check for carry flag also
 			switch (opcodes & 0x000f)
 			{
-				case 0x0000:
+				case 0x0:
 					//Sets VX to VY value
 					//Format 0x8XY0
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0001:
+				case 0x1:
 					//Set Vx to VX 'or' VY (OR operation)
 					//Format 0x8XY1
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] | V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break; 
-				case 0x0002:
+				case 0x2:
 					//Set Vx to VX 'and' VY (AND operation)
 					//Format 0x8XY2
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] & V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0003:
+				case 0x3:
 					//Set Vx to VX 'xor' VY (XOR operation)
 					//Format 0x8XY3
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] ^ V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0004:
+				case 0x4:
 					//Adds VY to VX register, also takes care of carry flag in VF register
 					//Format 0x8XY4
-					if (V[(opcodes & 0x00F0) >> 4] > (0xFF - V[(opcodes & 0x0F00) >> 8]))
+					if (V[(opcodes & 0x00F0) >> 4] + V[(opcodes & 0x0F00) >> 8]) > 0xFF){
 						V[0xF] = 1; //flag is on
-					else
+					}else{
 						V[0xF] = 0; //normal operation
+					}
 					V[(opcodes & 0x0F00) >> 8] += V[(opcodes & 0x00F0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0005:
+				case 0x5:
 					//Substracts VY to VX register, also takes care of borrow flag in VF register
 					//Format 0x8XY4
-					if (V[(opcodes & 0x00F0) >> 4] < (0xFF - V[(opcodes & 0x0F00) >> 8]))
-						V[0xF] = 1; //flag is on
-					else
-						V[0xF] = 0; //normal operation
-					V[(opcodes & 0x0F00) >> 8] -= V[(opcodes & 0x00F0) >> 4];
+					if (V[(opcodes & 0x0f00) >> 8] - V[(opcodes & 0x00F0) >> 4]) < 0x0){
+						V[0xF] = 0; //flag is on
+					}else{
+						V[0xF] = 1; //normal operation
+					}
+					V[(opcodes & 0x0F00) >> 8] = V[(opcodes & 0x0F00) >> 8] - V[(opcodes & 0x00F0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0006:
+				case 0x6:
 					//Bitwise operation, stores the least significant bit of VX in VF and then shifts to the right one bit
 					//Format 0x8XY6
-					V[0xF] = V[(opcodes & 0x0f00) >> 8] & 0x0f;
-					V[(opcodes & 0x0f00) >> 8] >> 1;
+					if((V[(opcodes & 0x0f00) >> 8] & 0x00ff) == 1){
+						V[0xF] = 0x000001;
+					}else{
+						V[0xF] = 0x000000;
+					}
+					V[(opcodes & 0x0f00 >> 8)] = V[(opcodes & 0x0f00 >> 8)] / 2;
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0007:
+				case 0x7:
 					//Sets VX to VY minus VX, set VF if there is a borrow
 					//Format 0x8XY7
-					if (V[(opcodes & 0x0f00) >> 8] - V[(opcodes & 0x00f0) >> 4] < 0) {
-						V[0xf] = 1; //Enable borrow flag
+					if (V[(opcodes & 0x00f0) >> 8] > V[(opcodes & 0x0f00) >> 4] ) {
+						V[0xf] = 0x000001; //Enable borrow flag
 					}
 					else {
-						V[0xf] = 0; //No flag is enabled
+						V[0xf] = 0x000000; //No flag is enabled
 					}
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x00f0) >> 4] - V[(opcodes & 0x0f00) >> 8];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x000E:
+				case 0xE:
 					//Stores the most significant bit from VX register in VF register and shift to left one position
-					V[0xf] = V[(opcodes & 0x0f00) >> 8] && 0xf0;
-					V[(opcodes & 0x0f00) >> 8] << 1;
+					if((V[(opcodes & 0x0f00) >> 8] & 0xff00) == 1){
+						V[0xF] = 0x000001;
+					}else{
+						V[0xF] = 0x000000;
+					}
+					V[(opcodes & 0x0f00 >> 8)] = V[(opcodes & 0x0f00 >> 8)] * 2;
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
@@ -299,7 +315,7 @@ void Chip8::emulateCPUCycles() {
 		case(0x9000):
 			//Condition jump if VX and VY are equal, pseudo if(Vx == Vy)
 			//Format 0x9XY0
-			if (V[(opcodes & 0x0f00) >> 8] == V[(opcodes & 0x00f0) >> 4]) {
+			if (V[(opcodes & 0x0f00) >> 8] != V[(opcodes & 0x00f0) >> 4]) {
 				pc += 2;
 			}
 			printHex("Opcode implemented: ", opcodes);
@@ -313,21 +329,20 @@ void Chip8::emulateCPUCycles() {
 
 		case(0xB000):
 			//Jump to address NNN plus V0
-			pc = V[0] + (opcodes & 0x0FFF);
-			pc += 2;
+			pc = V[0x0] + (opcodes & 0x0FFF);
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0xC000):
 			//Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
 			//Format is 0xCXNN
-			V[opcodes & 0x0F00] = rand() & (opcodes & 0x00FF);
+			V[(opcodes & 0x0F00 >> 8)] = (rand() % 255 + 1) & (opcodes & 0x00FF);
 			pc += 2;
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0xD000): {
 				//Draws a sprite at coordinate (VX, VY)
 				//Format is 0xDXYN where x is x pos, y is y pos and N is the height, width is always 8
-				//GPU.h
+				//In a future this will be handled by GPU.cpp file but for the moment, will be here
 				unsigned short vx = V[(opcodes & 0x0f00) >> 8];
 				unsigned short vy = V[(opcodes & 0x00f0) >> 4];
 				unsigned short height = (opcodes & 0x000f);
