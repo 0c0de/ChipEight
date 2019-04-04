@@ -1,27 +1,37 @@
 #include <iostream>
 #include <SDL.h>
 #include "CPU.h"
+#include "KEY.h"
 using namespace std;
 
 Chip8 chip8;
 
-//KeyMap
-int SDLK_1 = 0x31;
-int SDLK_2 = 0x32;
-int SDLK_3 = 0x33;
-int SDLK_Q = 0x71;
-int SDLK_W = 0x77;
-int SDLK_E = 0x65;
-int SDLK_A = 0x61;
-int SDLK_S = 0x73;
-int SDLK_D = 0x64;
-int SDLK_Z = 0x7a;
-int SDLK_X = 0x78;
-int SDLK_C = 0x63;
-
-unsigned short keys[0xF] = {
-	
+int emu_keys[16] = {
+	SDLK_1,
+	SDLK_2,
+	SDLK_3,
+	SDLK_4,
+	SDLK_q,
+	SDLK_w,
+	SDLK_e,
+	SDLK_r,
+	SDLK_a,
+	SDLK_s,
+	SDLK_d,
+	SDLK_f,
+	SDLK_z,
+	SDLK_x,
+	SDLK_c,
+	SDLK_v
 };
+
+void checkKeyPressedEmu(int key) {
+	for (int x = 0; x < 16; x++) {
+		if (emu_keys[x] == key) {
+			chip8.keys[x] = 1;
+		}
+	}
+}
 
 void DrawMethodOne(SDL_Renderer* renderer, SDL_Texture* texture) {
 	SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
@@ -83,7 +93,7 @@ void RunMainApp() {
 	SDL_Renderer* renderer = NULL;
 	int result = SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_SHOWN, &mainWindow, &renderer);
 	chip8.Initialize();
-	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/15PUZZLE");
+	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/MISSILE");
 	//mainWindow = SDL_CreateWindow("8-CHIP Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN);
 	SDL_RenderSetLogicalSize(renderer, 640, 320);
 	if (result == -1) {
@@ -97,7 +107,7 @@ void RunMainApp() {
 		bool isRunning = true;
 		while (isRunning) {
 			chip8.emulateCPUCycles();
-			//SDL_Delay(500);
+			//SDL_Delay(100);
 			if (chip8.canDraw){
 				DrawMethodOne(renderer, texture);
 				//DrawMethodTwo(renderer);
@@ -105,7 +115,8 @@ void RunMainApp() {
 			system("CLS");
 			for (int a = 0; a < 16; a++)
 			{
-				cout << "Register V[" << a << "] value is: " << (void*)&chip8.V[a] << endl;
+				cout << "Register V[" << a << "] value is: " << (void*)chip8.V[a] << hex << endl;
+				cout << "Stack[" << a << "] value is: " << (void*)chip8.stack[a] << hex << endl;
 			}
 			while (SDL_PollEvent(&programEvent)) {
 				switch (programEvent.type) {
@@ -114,6 +125,7 @@ void RunMainApp() {
 						break;
 					case SDL_KEYDOWN:
 						cout << "Key pressed: " << programEvent.key.keysym.sym << endl;
+						checkKeyPressedEmu(programEvent.key.keysym.sym);
 				}
 			}
 		}
