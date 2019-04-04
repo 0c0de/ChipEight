@@ -5,6 +5,24 @@ using namespace std;
 
 Chip8 chip8;
 
+//KeyMap
+int SDLK_1 = 0x31;
+int SDLK_2 = 0x32;
+int SDLK_3 = 0x33;
+int SDLK_Q = 0x71;
+int SDLK_W = 0x77;
+int SDLK_E = 0x65;
+int SDLK_A = 0x61;
+int SDLK_S = 0x73;
+int SDLK_D = 0x64;
+int SDLK_Z = 0x7a;
+int SDLK_X = 0x78;
+int SDLK_C = 0x63;
+
+unsigned short keys[0xF] = {
+	
+};
+
 void DrawMethodOne(SDL_Renderer* renderer, SDL_Texture* texture) {
 	SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
 	SDL_RenderClear(renderer);
@@ -65,7 +83,7 @@ void RunMainApp() {
 	SDL_Renderer* renderer = NULL;
 	int result = SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_SHOWN, &mainWindow, &renderer);
 	chip8.Initialize();
-	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/MAZE");
+	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/15PUZZLE");
 	//mainWindow = SDL_CreateWindow("8-CHIP Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN);
 	SDL_RenderSetLogicalSize(renderer, 640, 320);
 	if (result == -1) {
@@ -79,7 +97,7 @@ void RunMainApp() {
 		bool isRunning = true;
 		while (isRunning) {
 			chip8.emulateCPUCycles();
-			//SDL_Delay(100);
+			//SDL_Delay(500);
 			if (chip8.canDraw){
 				DrawMethodOne(renderer, texture);
 				//DrawMethodTwo(renderer);
