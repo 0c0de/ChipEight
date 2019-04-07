@@ -96,26 +96,17 @@ void Chip8::Initialize(){
 	opcodes = 0;
 	sp = 0;
 	cout << "Cleaning opcode, Index and stack pointer" << endl;
-	//Clear registers
-	for (int v = 0; v < sizeof(v); v++) {
-		V[v] = 0;
-	}
 	cout << "Cleaning registers..." << endl;
 
 
-	//Clear display
-	for (int g = 0; g < sizeof(gfx); g++) {
+	//Clear display,registers, and stack
+	for (int g = 0; g < 16; g++) {
 		gfx[g] = 0;
+		stack[g] = 0;
+		V[g] = 0;
 	}
 
 	cout << "Cleaning display" << endl;
-
-
-	//Clear stack
-	for (int s = 0; s < sizeof(stack); s++) {
-		stack[s] = 0;
-	}
-
 	cout << "Cleaning stacks levels" << endl;
 
 
@@ -140,6 +131,7 @@ void Chip8::emulateCPUCycles() {
 	//This piece of code will try to simulate a cicle of the CPU
 	//Fetch the opcode
 	opcodes = memory[pc] << 8 | memory[pc + 1];
+	pc += 2;
 	//Check opcode
 	switch (opcodes & 0xF000)
 	{
@@ -168,9 +160,10 @@ void Chip8::emulateCPUCycles() {
 		case(0x2000):
 			//Calls a subroutine at NNN
 			//Format is 0x2NNN
-			stack[sp] = pc;
 			sp++;
-			pc = opcodes & 0x0fff;
+			stack[sp] = pc;
+			cout << "Setting PC to: " << (opcodes & 0x0fff) << endl;
+			pc = (opcodes & 0x0fff);
 			printHex("Opcode implemented: ", opcodes);
 			break;
 		case(0x3000):
@@ -222,35 +215,35 @@ void Chip8::emulateCPUCycles() {
 			//Add NN to Vx, check for carry flag also
 			switch (opcodes & 0x000f)
 			{
-				case 0x0000:
+				case 0x0:
 					//Sets VX to VY value
 					//Format 0x8XY0
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0001:
+				case 0x1:
 					//Set Vx to VX 'or' VY (OR operation)
 					//Format 0x8XY1
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] | V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break; 
-				case 0x0002:
+				case 0x2:
 					//Set Vx to VX 'and' VY (AND operation)
 					//Format 0x8XY2
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] & V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0003:
+				case 0x3:
 					//Set Vx to VX 'xor' VY (XOR operation)
 					//Format 0x8XY3
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] != V[(opcodes & 0x00f0) >> 4];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0004:
+				case 0x4:
 					//Adds VY to VX register, also takes care of carry flag in VF register
 					//Format 0x8XY4
 					if (V[(opcodes & 0x00F0) >> 4] + V[(opcodes & 0x0F00) >> 8] > 255)
@@ -261,7 +254,7 @@ void Chip8::emulateCPUCycles() {
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0005:
+				case 0x5:
 					//Substracts VY to VX register, also takes care of borrow flag in VF register
 					//Format 0x8XY4
 					if (V[(opcodes & 0x0F00) >> 8] > V[(opcodes & 0x00F0) >> 4])
@@ -272,7 +265,7 @@ void Chip8::emulateCPUCycles() {
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0006:
+				case 0x6:
 					//Bitwise operation, stores the least significant bit of VX in VF and then shifts to the right one bit
 					//Format 0x8XY6
 					V[0xF] = V[(opcodes & 0x0f00) >> 8] & 0x0f;
@@ -280,7 +273,7 @@ void Chip8::emulateCPUCycles() {
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x0007:
+				case 0x7:
 					//Sets VX to VY minus VX, set VF if there is a borrow
 					//Format 0x8XY7
 					if (V[(opcodes & 0x00F0) >> 4] > V[(opcodes & 0x0F00) >> 9]) {
@@ -293,7 +286,7 @@ void Chip8::emulateCPUCycles() {
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
-				case 0x000E:
+				case 0xE:
 					//Stores the most significant bit from VX register in VF register and shift to left one position
 					V[0xf] = V[(opcodes & 0x0f00) >> 8] && 0xf0;
 					V[(opcodes & 0x0f00) >> 8] << 1;
@@ -308,7 +301,7 @@ void Chip8::emulateCPUCycles() {
 		case(0x9000):
 			//Condition jump if VX and VY are equal, pseudo if(Vx == Vy)
 			//Format 0x9XY0
-			if (V[(opcodes & 0x0f00) >> 8] == V[(opcodes & 0x00f0) >> 4]) {
+			if (V[(opcodes & 0x0f) >> 8] == V[(opcodes & 0x00f) >> 4]) {
 				pc += 4;
 			}
 			else {
@@ -342,7 +335,7 @@ void Chip8::emulateCPUCycles() {
 				//GPU.h
 				unsigned short vx = V[(opcodes & 0x0f00) >> 8];
 				unsigned short vy = V[(opcodes & 0x00f0) >> 4];
-				unsigned short height = (opcodes & 0x000f);
+				unsigned short height = opcodes & 0x000f;
 				unsigned short width = 8;
 				unsigned short pixel;
 
@@ -353,10 +346,10 @@ void Chip8::emulateCPUCycles() {
 
 					for (int x = 0; x < width; x++) {
 						if ((pixel & (0x80 >> x)) != 0) {
-							if (gfx[(vx + x) + ((vy + y) * 64)] == 1) {
+							if (gfx[(vx + x + ((vy + y) * 64))] == 1) {
 								V[0xf] = 1;
 							}
-							gfx[(vx + x) + ((vy + y) * 64)] ^= 1;
+							gfx[vx + x + ((vy + y) * 64)] ^= 1;
 						}
 					}
 				}
@@ -370,7 +363,7 @@ void Chip8::emulateCPUCycles() {
 				case 0x009E:
 					//Handles if the key stored in VX is pressed by using a condition, if(key() == Vx){}
 					//Format 0xEX9E
-					if (V[(opcodes & 0x0f00) >> 8] == 1) {
+					if (V[(opcodes & 0x0f) >> 8] == 1) {
 						pc += 4;
 					}
 					else {
@@ -380,7 +373,7 @@ void Chip8::emulateCPUCycles() {
 				case 0x00A1:
 					//Handles if the key stored in VX is NOT pressed by using a condition, if(key() != Vx){}
 					//Format 0xEXA1
-					if (V[(opcodes & 0x0f00) >> 8] != 1) {
+					if (V[(opcodes & 0x0f) >> 8] != 1) {
 						pc += 4;
 					}
 					else {
@@ -395,7 +388,7 @@ void Chip8::emulateCPUCycles() {
 				//Sets VX to delay_timer
 				//Format 0xFX07
 				case 0x07:
-					V[(opcodes & 0x0f00) >> 8] = delay_timer;
+					V[(opcodes & 0x0f) >> 8] = delay_timer;
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
@@ -405,15 +398,14 @@ void Chip8::emulateCPUCycles() {
 				case 0x0A:
 					{
 						bool isKeyPressed = false;
-
-						for (int j = 0; j < 16; j++) {
-							if (keys[j] != 0) {
-								V[(opcodes & 0x0f00) >> 8] = j;
-								isKeyPressed = true;
+						while (!isKeyPressed) {
+							for (int j = 0; j < 16; j++) {
+								cout << "Checking key in location " << j << hex << endl;
+								if (keys[j] == 1) {
+									V[(opcodes & 0x0f) >> 8] = j;
+									isKeyPressed = true;
+								}
 							}
-						}
-						if (!isKeyPressed) {
-							return;
 						}
 						pc += 2;
 						printHex("Opcode implemented: ", opcodes);
@@ -422,21 +414,21 @@ void Chip8::emulateCPUCycles() {
 				//Sets delay_timer to VX
 				//Format 0xFX15
 				case 0x15:
-					delay_timer = V[(opcodes & 0x0f00) >> 8];
+					delay_timer = V[(opcodes & 0x0f) >> 8];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
 				//Sets sound_timer to VX
 				//Format 0xFX18
 				case 0x18:
-					sound_timer = V[(opcodes & 0x0f00) >> 8];
+					sound_timer = V[(opcodes & 0x0f) >> 8];
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
 				//Adds VX to I
 				//Format 0xFX1E
 				case 0x1E:
-					if (I + V[(opcodes & 0x0f00) >> 8] > 0xFF) {
+					if (I + V[(opcodes & 0x0f) >> 8] > 0xFFF) {
 						V[0xF] = 1; //Overflow
 					}else{
 						V[0xF] = 0; //Non-Overflow
@@ -450,7 +442,7 @@ void Chip8::emulateCPUCycles() {
 				//Represented by a 4x5 font
 				//Format 0xFX29
 				case 0x29:
-					I = V[(opcodes & 0x0f00) >> 8] * 0x5;
+					I = V[(opcodes & 0x0f00) >> 8] * 5;
 					pc += 2;
 					printHex("Opcode implemented: ", opcodes);
 					break;
@@ -466,25 +458,29 @@ void Chip8::emulateCPUCycles() {
 				//Sets delay_timer to VX
 				//Format 0xfX07
 				case 0x55:
-					for (int q = 0; q <= (opcodes & 0x0f00); q++) {
+					for (int q = 0; q <= (opcodes & 0x0f); q++) {
 						memory[I + q] = V[q];
 					}
+					//I = ((opcodes & 0x0f) >> 8) + 1;
 					pc += 2;
-					printHex("This opcode is not implemented yet: ", opcodes);
+					printHex("Opcode implemented: ", opcodes);
 					break;
 				//Fills V0 to VX (including VX) with values from memory starting at address I. 
 				//The offset from I is increased by 1 for each value written, but I itself is left unmodified.
 				//Format 0xfX07
 				case 0x65:
-					for (auto q = 0; q <= (opcodes & 0x0f00); q++) {
+					for (auto q = 0; q <= (opcodes & 0x0f); q++) {
+						cout << "Register V[" << q << "] and Index is I " << I + q << endl;
 						V[q] = memory[I + q];
 					}
+					//I = ((opcodes & 0x0f) >> 8) + 1;
 					pc += 2;
-					printHex("This opcode is not implemented yet: ", opcodes);
+					printHex("Opcode implemented: ", opcodes);
 					break;
 			}
 			break;
 		default:
+			pc += 2;
 			printHex("This opcode is not implemented yet: ", opcodes);
 			break;
 	}

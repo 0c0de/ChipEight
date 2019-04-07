@@ -93,7 +93,7 @@ void RunMainApp() {
 	SDL_Renderer* renderer = NULL;
 	int result = SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_SHOWN, &mainWindow, &renderer);
 	chip8.Initialize();
-	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/MISSILE");
+	chip8.loadGame("C:/Users/josel/source/repos/CHIP-8 Emulator/CHIP-8 Emulator/GAMES/TRIP8.ch8");
 	//mainWindow = SDL_CreateWindow("8-CHIP Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN);
 	SDL_RenderSetLogicalSize(renderer, 640, 320);
 	if (result == -1) {
@@ -107,17 +107,17 @@ void RunMainApp() {
 		bool isRunning = true;
 		while (isRunning) {
 			chip8.emulateCPUCycles();
-			//SDL_Delay(100);
+			SDL_Delay(10);
 			if (chip8.canDraw){
 				DrawMethodOne(renderer, texture);
 				//DrawMethodTwo(renderer);
 			}
-			system("CLS");
-			for (int a = 0; a < 16; a++)
+			//system("CLS");
+			/*for (int a = 0; a < 16; a++)
 			{
 				cout << "Register V[" << a << "] value is: " << (void*)chip8.V[a] << hex << endl;
 				cout << "Stack[" << a << "] value is: " << (void*)chip8.stack[a] << hex << endl;
-			}
+			}*/
 			while (SDL_PollEvent(&programEvent)) {
 				switch (programEvent.type) {
 					case SDL_QUIT:
