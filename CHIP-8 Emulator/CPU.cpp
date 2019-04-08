@@ -476,8 +476,8 @@ void Chip8::emulateCPUCycles() {
 				//The offset from I is increased by 1 for each value written, but I itself is left unmodified.
 				//Format 0xfX07
 				case 0x65:
-					for (auto q = 0; q <= static_cast<int>(opcodes & 0x0f00); q++) {
-						V[q] = memory[I + q];
+					for (auto q = 0; q <= (opcodes & 0x0f00); q++) {
+						V[q] = memory[I];
 					}
 					pc += 2;
 					printHex("This opcode is not implemented yet: ", opcodes);
