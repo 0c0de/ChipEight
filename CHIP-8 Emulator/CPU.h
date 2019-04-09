@@ -21,11 +21,11 @@ public:
 		0xF0, 0x80, 0xF0, 0x80, 0x80		// F
 	};
 
+	//Variabe for checking if can draw the new image
+	bool canDraw = false;
 
 	//Handles the opcodes of the cpu, which are two bytes long so we use "unsigned short"
 	unsigned short opcodes;
-
-	bool canDraw = false;
 
 	//Emulates the memory size of CHIP-8 which is 4K, so 4096 bytes
 	unsigned char memory[4096];
@@ -42,9 +42,9 @@ public:
 	unsigned short pc;
 
 	//Handle pixel screen state, 1 or 0
-	//Resolution of CHIP-8 is about 64 by 24 or 2048 pixels
+	//Resolution of CHIP-8 is about 64 by 32 or 2048 pixels
 	//so we use an array to store this info
-	unsigned char gfx[64 * 24];
+	unsigned char gfx[2048];
 
 	//Delay timer count at a frequency of 60Hz, when reaches more than 0
 	//Counts down
@@ -54,13 +54,13 @@ public:
 	unsigned char sound_timer;
 
 	//Handling stack of the system, has 16 levels
-	unsigned char stack[16];
+	unsigned short stack[16];
 
 	//Create a stack pointer(sp) for remembering last jump
 	unsigned char sp;
 
 	//Handles the controller, in hex [0x0-0xF]
-	unsigned char keys[16];
+	unsigned short keys[16];
 
 	//Handles all init stuff like clean all
 	void Initialize();
@@ -70,4 +70,10 @@ public:
 
 	//Load the game once specified the path
 	void loadGame(const char* pathGame);
+
+private:
+
+	void printHex(const char* displayMessage, int val);
+
+	void clearScreen();
 };
