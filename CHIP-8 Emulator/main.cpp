@@ -99,7 +99,7 @@ void RunMainApp() {
 	SDL_Renderer* renderer = NULL;
 	int result = SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_OPENGL, &mainWindow, &renderer);
 	chip8.Initialize();
-	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/PONG1P.ch8");
+	chip8.loadGame("C:/Users/josel/Documents/ChipEight/CHIP-8 Emulator/GAMES/TETRIS");
 	//mainWindow = SDL_CreateWindow("8-CHIP Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN);
 	SDL_RenderSetLogicalSize(renderer, 640, 320);
 	if (result == -1) {
@@ -112,18 +112,17 @@ void RunMainApp() {
 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 32);
 		bool isRunning = true;
 		while (isRunning) {
-			chip8.emulateCPUCycles();
-			if (chip8.canDraw){
-				DrawMethodOne(renderer, texture);
-				SDL_Delay(1);
-				//DrawMethodTwo(renderer);
-			}
 			//system("CLS");
 			/*for (int a = 0; a < 16; a++)
 			{
 				cout << "Register V[" << a << "] value is: " << (void*)chip8.V[a] << hex << endl;
 				cout << "Stack[" << a << "] value is: " << (void*)chip8.stack[a] << hex << endl;
 			}*/
+			chip8.emulateCPUCycles();
+			if (chip8.canDraw) {
+				DrawMethodOne(renderer, texture);
+				//DrawMethodTwo(renderer);
+			}
 			while (SDL_PollEvent(&programEvent)) {
 				switch (programEvent.type) {
 					case SDL_QUIT:

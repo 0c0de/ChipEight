@@ -161,6 +161,7 @@ void Chip8::emulateCPUCycles() {
 					break;
 				default:
 					printHex("Opcode not implemented: ", opcodes);
+					pc += 2;
 					break;
 			}
 			break;
@@ -211,13 +212,13 @@ void Chip8::emulateCPUCycles() {
 		case(0x6000):
 			//Sets Vx to NN
 			//Format 0x6XNN
-			V[(opcodes & 0x0f00) >> 8] = opcodes & 0x00ff;
+			V[(opcodes & 0x0f00) >> 8] = (opcodes & 0x00ff);
 			pc += 2;
 			break;
 		case(0x7000):
 			//Add NN to Vx, we don't take care of CF
 			//Format 0x7XNN
-			V[(opcodes & 0x0f00) >> 8] += opcodes & 0x00ff;
+			V[(opcodes & 0x0f00) >> 8] += (opcodes & 0x00ff);
 			pc += 2;
 			break;
 		case(0x8000):
@@ -250,7 +251,7 @@ void Chip8::emulateCPUCycles() {
 				case 0x4:
 					//Adds VY to VX register, also takes care of carry flag in VF register
 					//Format 0x8XY4
-					if (V[(opcodes & 0x00F0) >> 4] + V[(opcodes & 0x0F00) >> 8] > 0xfff)
+					if (V[(opcodes & 0x00F0) >> 4] > (0xFF - V[(opcodes & 0x0F00) >> 8]))
 						V[0xF] = 1; //flag is on
 					else
 						V[0xF] = 0; //normal operation
@@ -264,18 +265,14 @@ void Chip8::emulateCPUCycles() {
 						V[0xF] = 1; //flag is on
 					else
 						V[0xF] = 0; //normal operation
+					V[(opcodes & 0x0F00) >> 8] -= V[(opcodes & 0x00F0) >> 4];
 					pc += 2;
 					break;
 				case 0x6:
 					//Bitwise operation, stores the least significant bit of VX in VF and then shifts VX to the right one bit
 					//Format 0x8XY6
 					//If it is one then VF is set to 1 if not then is 0
-					if (V[(opcodes & 0x0f00) >> 8] && 0x000f == 1) {
-						V[0xf] = 1;
-					}
-					else {
-						V[0xf] = 0;
-					}
+					V[0xF] = V[(opcodes & 0x0f00) >> 8] & 0x1;
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] >> 1;
 					pc += 2;
 					break;
@@ -283,10 +280,10 @@ void Chip8::emulateCPUCycles() {
 					//Sets VX to VY minus VX, set VF if there is a borrow
 					//Format 0x8XY7
 					if (V[(opcodes & 0x00F) >> 4] > V[(opcodes & 0x0F) >> 8]) {
-						V[0xf] = 0; //Enable borrow flag
+						V[0xf] = 1; //Enable borrow flag
 					}
 					else {
-						V[0xf] = 1; //No flag is enabled
+						V[0xf] = 0; //No flag is enabled
 					}
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x00f0) >> 4] - V[(opcodes & 0x0f00) >> 8];
 					pc += 2;
@@ -295,17 +292,13 @@ void Chip8::emulateCPUCycles() {
 					//Stores the most significant bit from VX register in VF register and shift VX to left one position
 					//Format 0x8XY6
 					//If it is one then VF is set to 1 if not then is 0
-					if (V[(opcodes & 0x0f00) >> 8] && 0xf000 == 1) {
-						V[0xf] = 1;
-					}
-					else {
-						V[0xf] = 0;
-					}
+					V[0xF] = V[(opcodes & 0x0f00) >> 8] >> 7;
 					V[(opcodes & 0x0f00) >> 8] = V[(opcodes & 0x0f00) >> 8] << 1;
 					pc += 2;
 					break;
 				default:
 					printHex("Opcode not implemented: ", opcodes);
+					pc += 2;
 					break;
 			}
 			break;
@@ -313,11 +306,11 @@ void Chip8::emulateCPUCycles() {
 			//Condition jump if VX and VY are equal, pseudo if(Vx == Vy)
 			//If VX is equal to VY then skip to the next instruction 
 			//Format 0x9XY0
-			if (V[(opcodes & 0x0f00) >> 8] == V[(opcodes & 0x00f0) >> 4]) {
-				pc += 2;
+			if (V[(opcodes & 0x0f00) >> 8] != V[(opcodes & 0x00f0) >> 4]) {
+				pc += 4;
 			}
 			else {
-				pc += 4;
+				pc += 2;
 			}
 			break;
 		case (0xA000):
@@ -329,7 +322,6 @@ void Chip8::emulateCPUCycles() {
 		case(0xB000):
 			//Jump to address NNN plus V0
 			pc = V[0] + (opcodes & 0x0FFF);
-			pc += 2;
 			break;
 		case(0xC000):
 			//Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
@@ -355,11 +347,7 @@ void Chip8::emulateCPUCycles() {
 					for (int x = 0; x < width; x++) {
 						if ((pixel & (0x80 >> x)) != 0) {
 							if (gfx[(vx + x + ((vy + y)*64))] == 1) {
-								cout << "Collision DETECTED: " << endl;
-								V[0xf] = 1;
-							}
-							else {
-								V[0xf] = 0;
+								V[15] = 1;
 							}
 							gfx[vx + x + ((vy + y)*64)] ^= 1;
 						}
@@ -393,6 +381,9 @@ void Chip8::emulateCPUCycles() {
 						pc += 2;
 					}
 					break;
+				default:
+					pc += 2;
+					break;
 			}
 			break;
 		case(0xF000):
@@ -417,13 +408,13 @@ void Chip8::emulateCPUCycles() {
 								isKeyPressed = true;
 							}
 						}						
-
-						if(!isKeyPressed){
+						if (!isKeyPressed) {
 							return;
 						}
+
 						pc += 2;
+						break;
 					}
-					break;
 				//Sets delay_timer to VX
 				//Format 0xFX15
 				case 0x15:
@@ -485,19 +476,21 @@ void Chip8::emulateCPUCycles() {
 			}
 			break;
 		default:
+			pc += 2;
 			printHex("This opcode is not implemented yet: ", opcodes);
 			break;
 	}
 	
 	if(sound_timer > 0){
-		if(sound_timer == 1){
-			//BEEP A SOUND
-		}
 		sound_timer--;
 	}
 	
 	if(delay_timer > 0){
 		delay_timer--;
+	}
+
+	if (sound_timer == 1) {
+		//BEEP A SOUND
 	}
 }
 

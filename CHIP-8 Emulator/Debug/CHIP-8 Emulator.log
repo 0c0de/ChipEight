@@ -1,3 +1,2 @@
-﻿  CPU.cpp
-c:\users\josel\documents\chipeight\chip-8 emulator\cpu.cpp(515): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'int'; posible pérdida de datos
+﻿  main.cpp
   CHIP-8 Emulator.vcxproj -> C:\Users\josel\Documents\ChipEight\Debug\CHIP-8 Emulator.exe
