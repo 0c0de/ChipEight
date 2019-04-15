@@ -53,6 +53,9 @@ public:
 	//Buzzer register
 	unsigned char sound_timer;
 
+	//Simple boolean to play the sound
+	bool canPlaySound;
+
 	//Handling stack of the system, has 16 levels
 	unsigned short stack[16];
 
@@ -60,7 +63,7 @@ public:
 	unsigned char sp;
 
 	//Handles the controller, in hex [0x0-0xF]
-	unsigned short keys[16];
+	unsigned char keys[16];
 
 	//Handles all init stuff like clean all
 	void Initialize();
