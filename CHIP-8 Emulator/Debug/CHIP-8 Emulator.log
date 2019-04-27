@@ -1,4 +1,3 @@
 ﻿  main.cpp
-c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\main.cpp(69): warning C4018: '>': no coinciden signed/unsigned
-c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\main.cpp(106): warning C4244: 'argumento': conversión de 'double' a 'Uint32'; posible pérdida de datos
+c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\main.cpp(71): warning C4018: '>': no coinciden signed/unsigned
   CHIP-8 Emulator.vcxproj -> C:\Users\josel\source\repos\CHIP-8 Emulator\Debug\CHIP-8 Emulator.exe

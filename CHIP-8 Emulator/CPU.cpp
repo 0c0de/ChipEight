@@ -406,7 +406,6 @@ void Chip8::emulateCPUCycles() {
 			canPlaySound = true;
 		}
 		sound_timer--;
-		canPlaySound = false;
 	}
 	
 	if(delay_timer > 0){
