@@ -21,13 +21,7 @@
     <ClCompile Include="CPU.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="GPU.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="KEY.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="SOUND.cpp">
+    <ClCompile Include="tinyfiledialogs.c">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,13 +29,7 @@
     <ClInclude Include="CPU.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="GPU.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="KEY.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="SOUND.h">
+    <ClInclude Include="tinyfiledialogs.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

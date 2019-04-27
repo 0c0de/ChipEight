@@ -80,17 +80,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Custom</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>C:\SDL2-2.0.9\include;C:\Users\josel\emsdk\emscripten\1.38.30\system\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\SDL2-2.0.9\lib\x86;C:\Users\josel\emsdk\emscripten\1.38.30\system\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -135,17 +136,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GPU.cpp" />
-    <ClCompile Include="KEY.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="CPU.cpp" />
-    <ClCompile Include="SOUND.cpp" />
+    <ClCompile Include="tinyfiledialogs.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU.h" />
-    <ClInclude Include="GPU.h" />
-    <ClInclude Include="KEY.h" />
-    <ClInclude Include="SOUND.h" />
+    <ClInclude Include="tinyfiledialogs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

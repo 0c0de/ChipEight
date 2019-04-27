@@ -1,3 +1,6 @@
 ﻿  main.cpp
-c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\main.cpp(71): warning C4018: '>': no coinciden signed/unsigned
+  CPU.cpp
+c:\users\josel\source\repos\chip-8 emulator\chip-8 emulator\cpu.cpp(427): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'int'; posible pérdida de datos
+  Generando código...
+  tinyfiledialogs.c
   CHIP-8 Emulator.vcxproj -> C:\Users\josel\source\repos\CHIP-8 Emulator\Debug\CHIP-8 Emulator.exe

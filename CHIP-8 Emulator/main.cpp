@@ -1,19 +1,24 @@
 #include <iostream>
 #include <SDL.h>
 #include "CPU.h"
-#include "KEY.h"
 #include "SDL_thread.h"
+#include "SDL_mixer.h"
 #include "SDL_audio.h"
 #include <cstdlib>
 #include <cstdio>
+#include "tinyfiledialogs.h"
 using namespace std;
 
+//Instancing Chip8 class
 Chip8 chip8;
-void my_audio_callback(void *userdata, Uint8 *stream, int len);
 
-// variable declarations
-static Uint8 *audio_pos; // global pointer to the audio buffer to be played
-static Uint32 audio_len; // remaining length of the sample we have to play
+//File dialog name
+const char* openFileTitle = "";
+const char* filters[2] = { ".ch8", "*" };
+
+//Bool for an infinite loop
+bool isEmuRunning = true;
+
 unsigned char emu_keys[16] = {
 	SDLK_x,
 	SDLK_1,
@@ -62,96 +67,77 @@ void DrawMethodOne(SDL_Renderer* renderer, SDL_Texture* texture) {
 	SDL_RenderPresent(renderer);
 }
 
-
-void my_audio_callback(void *userdata, Uint8 *stream, int len) {
-
-	if (audio_len == 0)
-		return;
-
-	len = (len > audio_len ? audio_len : len);
-	SDL_MixAudio(stream, audio_pos, len, SDL_MIX_MAXVOLUME);
-
-	audio_pos += len;
-	audio_len -= len;
+void PlaySound(const char* filename) {
+	Mix_Chunk* effect = Mix_LoadWAV(filename);
+	Mix_PlayChannel(-1, effect, 0);
+	chip8.canPlaySound = false;
 }
 
-void PlaySound(const char* filename) {
-	
-		// local variables
-		static Uint32 wav_length; // length of our sample
-		static Uint8 *wav_buffer; // buffer containing our audio file
-		static SDL_AudioSpec wav_spec; // the specs of our piece of musi
-
-		/* Load the WAV */
-		// the specs, length and buffer of our wav are filled
-		if (SDL_LoadWAV(filename, &wav_spec, &wav_buffer, &wav_length) == NULL) {
-			cerr << "An error occurred loading wav file " << SDL_GetError() << endl;
-		}
-		// set the callback function
-		wav_spec.callback = my_audio_callback;
-		wav_spec.userdata = NULL;
-		// set our global static variables
-		audio_pos = wav_buffer; // copy sound buffer
-		audio_len = wav_length; // copy file length
-
-		/* Open the audio device */
-		if (SDL_OpenAudio(&wav_spec, NULL) < 0) {
-			fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
-			exit(-1);
-		}
-
-		/* Start playing */
-		SDL_PauseAudio(0);
-
-		// wait until we're don't playing
-		while (audio_len > 0) {
-			SDL_Delay(0);
-		}
-
-		// shut everything down
-		SDL_CloseAudio();
-		chip8.canPlaySound = false;
-	
+void handleInitEmu(SDL_Renderer* render, SDL_Window* window) {
+	chip8.Initialize();
+	openFileTitle = tinyfd_openFileDialog("Select your chip 8 rom", "", 2, filters, NULL, 0);
+	if (!openFileTitle) {
+		tinyfd_messageBox("No game", "So you selected no game and emulator cannot handle this, because I'm lazy and didn't programmed it so,It will close as soon as you close this message", "ok", "error", 1);
+		SDL_DestroyWindow(window);
+		SDL_DestroyRenderer(render);
+		SDL_Quit();
+		isEmuRunning = false;
+	}
+	else
+	{
+		chip8.loadGame(openFileTitle);
+	}
 }
 
 void RunMainApp() {
-			SDL_Window* mainWindow = NULL;
-			SDL_Renderer* render = NULL;
-			SDL_CreateWindowAndRenderer(640, 320, 0, &mainWindow, &render);
-			chip8.Initialize();
-			chip8.loadGame("GAMES/UFO");
-			SDL_Event programEvent;
-			SDL_Texture* texture = NULL;
-			texture = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 32);
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+	SDL_Window* mainWindow = NULL;
+	SDL_Renderer* render = NULL;
+	SDL_CreateWindowAndRenderer(640, 320, 0, &mainWindow, &render);
+	handleInitEmu(render, mainWindow);
+	SDL_Event programEvent;
+	SDL_Texture* texture = NULL;
+	texture = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 32);
+	while (isEmuRunning) {
+		
+		chip8.emulateCPUCycles();
+		if (chip8.canDraw) {
+			DrawMethodOne(render, texture);
+			SDL_Delay(20);
+		}
+		
+		if (chip8.canPlaySound) {
+			PlaySound("music/sound.wav");
+		}
 
-			while (true) {
-
-				chip8.emulateCPUCycles();
-				if (chip8.canDraw) {
-					DrawMethodOne(render, texture);
-					SDL_Delay(20);
-				}
-
-				if (chip8.canPlaySound) {
-					PlaySound("music/sound.wav");
-				}
-
-				while (SDL_PollEvent(&programEvent)) {
-					switch (programEvent.type) {
-					case SDL_QUIT:
-						SDL_Quit();
-						break;
-					case SDL_KEYDOWN:
-						cout << "Key pressed: " << programEvent.key.keysym.sym << endl;
-						checkKeyPressedEmu(programEvent.key.keysym.sym, false);
-						break;
-					case SDL_KEYUP:
-						cout << "Key not pressed: " << programEvent.key.keysym.sym << endl;
-						checkKeyPressedEmu(programEvent.key.keysym.sym, true);
-						break;
+		while (SDL_PollEvent(&programEvent)) {
+			switch (programEvent.type) {
+				case SDL_QUIT:
+					SDL_DestroyWindow(mainWindow);
+					SDL_DestroyRenderer(render);
+					isEmuRunning = false;
+					break;
+				case SDL_KEYDOWN:
+					cout << "Key pressed: " << programEvent.key.keysym.sym << endl;
+					checkKeyPressedEmu(programEvent.key.keysym.sym, false);
+					if (programEvent.key.keysym.sym == SDLK_F1) {
+						handleInitEmu(render, mainWindow);
 					}
-				}
+
+					if (programEvent.key.keysym.sym == SDLK_ESCAPE) {
+						SDL_Quit();
+						SDL_DestroyWindow(mainWindow);
+						SDL_DestroyRenderer(render);
+						isEmuRunning = false;
+					}
+					break;
+				case SDL_KEYUP:
+					cout << "Key not pressed: " << programEvent.key.keysym.sym << endl;
+					checkKeyPressedEmu(programEvent.key.keysym.sym, true);
+					break;
 			}
+		}
+	}
 }
 
 int main(int argc, char* args[]) {
@@ -161,8 +147,8 @@ int main(int argc, char* args[]) {
 	}
 	else {
 		cout << "SDL Initiated correctly" << endl;
-		
 		RunMainApp();
+
 	}
 
 	return 0;
