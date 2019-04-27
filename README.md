@@ -3,11 +3,15 @@
 I started this project for a weekend that I was bored, I was interesting in emulation always and I thought that now it could be the time to start and go in
 
 ## What can do?
-A file dialog window opens for select the game you want
-Have sound
-Have a well implemented input
-Have a blueish palette of colors
-Works quite well to be honest, no crashes after all
+- [x] A file dialog window opens for select the game you want
+
+- [x] Have sound
+
+- [x] Have a well implemented input
+
+- [x] Have a blueish palette of colors
+
+- [x] Works quite well to be honest, no crashes after all
 
 ## Screenshots
 ![Screen2](https://imgur.com/v7KdIy7.png)
